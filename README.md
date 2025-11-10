@@ -89,6 +89,18 @@ docker-compose exec app sh
 
 ### Opção 2: Instalação Manual
 
+**⚠️ Se você já tem o projeto rodando com dados:**
+```bash
+# 1. Instalar novas dependências
+npm install
+
+# 2. Executar migração do banco de dados
+node migrate.js
+
+# 3. Reiniciar o servidor
+npm start
+```
+
 ### 1. Instalar MySQL/MariaDB
 
 **Windows:**
