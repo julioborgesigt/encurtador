@@ -1,0 +1,23 @@
+{
+  "name": "url-shortener-mysql",
+  "version": "1.0.0",
+  "description": "Sistema gerador de links curtos e QR codes com MySQL/MariaDB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": ["url-shortener", "qr-code", "mysql", "mariadb"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5",
+    "qrcode": "^1.5.3",
+    "nanoid": "^3.3.7",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

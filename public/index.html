@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encurtador de URLs & Gerador de QR Code</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 Encurtador de URLs</h1>
+            <p class="subtitle">Crie links curtos e QR codes instantaneamente</p>
+        </header>
+
+        <!-- Formulário de Encurtamento -->
+        <section class="url-form">
+            <div class="input-group">
+                <input 
+                    type="url" 
+                    id="urlInput" 
+                    placeholder="Cole sua URL aqui (ex: https://exemplo.com.br)" 
+                    required
+                >
+                <button id="shortenBtn" class="btn-primary">
+                    <span class="btn-text">Encurtar</span>
+                    <span class="btn-loading" style="display: none;">⏳</span>
+                </button>
+            </div>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </section>
+
+        <!-- Resultado -->
+        <section id="resultSection" class="result-section" style="display: none;">
+            <div class="result-card">
+                <h2>✅ Link Criado com Sucesso!</h2>
+                
+                <div class="result-content">
+                    <div class="url-display">
+                        <label>Link Curto:</label>
+                        <div class="url-box">
+                            <input type="text" id="shortUrlDisplay" readonly>
+                            <button class="btn-copy" onclick="copyToClipboard('shortUrlDisplay')">
+                                📋 Copiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="url-display">
+                        <label>URL Original:</label>
+                        <div class="url-box original">
+                            <input type="text" id="originalUrlDisplay" readonly>
+                        </div>
+                    </div>
+
+                    <div class="qr-code-container">
+                        <label>QR Code:</label>
+                        <img id="qrCodeImage" alt="QR Code" class="qr-code">
+                        <button class="btn-download" onclick="downloadQRCode()">
+                            💾 Baixar QR Code
+                        </button>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Cliques:</span>
+                            <span class="stat-value" id="clickCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Criado em:</span>
+                            <span class="stat-value" id="createdDate">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-new" onclick="createNew()">
+                    ➕ Criar Novo Link
+                </button>
+            </div>
+        </section>
+
+        <!-- Lista de URLs -->
+        <section class="urls-list">
+            <div class="list-header">
+                <h2>📊 Seus Links Criados</h2>
+                <button class="btn-refresh" onclick="loadUrls()">🔄 Atualizar</button>
+            </div>
+            
+            <div id="urlsList" class="urls-container">
+                <p class="loading">Carregando...</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Desenvolvido com ❤️ | Sistema de Encurtamento de URLs</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
