@@ -1,5 +1,7 @@
 // Elementos do DOM
 const urlInput = document.getElementById('urlInput');
+const customCodeInput = document.getElementById('customCodeInput');
+const expiresInInput = document.getElementById('expiresInInput');
 const shortenBtn = document.getElementById('shortenBtn');
 const errorMessage = document.getElementById('errorMessage');
 const resultSection = document.getElementById('resultSection');
@@ -9,9 +11,13 @@ const qrCodeImage = document.getElementById('qrCodeImage');
 const clickCount = document.getElementById('clickCount');
 const createdDate = document.getElementById('createdDate');
 const urlsList = document.getElementById('urlsList');
+const searchInput = document.getElementById('searchInput');
 
 // Dados da URL atual
 let currentUrlData = null;
+let currentPage = 1;
+let currentSearch = '';
+let searchTimeout = null;
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,49 +32,75 @@ urlInput.addEventListener('keypress', (e) => {
     }
 });
 
+// Função para toggle das opções avançadas
+function toggleAdvancedOptions() {
+    const content = document.getElementById('advancedOptionsContent');
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+    } else {
+        content.style.display = 'none';
+    }
+}
+
 // Função principal: Encurtar URL
 async function shortenUrl() {
     const url = urlInput.value.trim();
-    
+    const customCode = customCodeInput.value.trim();
+    const expiresIn = expiresInInput.value;
+
     // Validação
     if (!url) {
         showError('Por favor, insira uma URL');
         return;
     }
-    
+
     if (!isValidUrl(url)) {
         showError('Por favor, insira uma URL válida (deve começar com http:// ou https://)');
         return;
     }
-    
+
+    // Validar custom code se fornecido
+    if (customCode && !isValidCustomCode(customCode)) {
+        showError('Código personalizado inválido. Use apenas letras, números e hífens (3-30 caracteres)');
+        return;
+    }
+
     // Desabilitar botão e mostrar loading
     shortenBtn.disabled = true;
     document.querySelector('.btn-text').style.display = 'none';
     document.querySelector('.btn-loading').style.display = 'inline';
     hideError();
-    
+
     try {
+        const body = { url };
+        if (customCode) body.customCode = customCode;
+        if (expiresIn) body.expiresIn = expiresIn;
+
         const response = await fetch('/api/shorten', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ url })
+            body: JSON.stringify(body)
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.error || 'Erro ao encurtar URL');
         }
-        
+
         // Armazenar dados e mostrar resultado
         currentUrlData = data;
         displayResult(data);
-        
+
+        // Limpar campos
+        customCodeInput.value = '';
+        expiresInInput.value = '';
+
         // Recarregar lista de URLs
         loadUrls();
-        
+
     } catch (error) {
         showError(error.message);
     } finally {
@@ -77,6 +109,12 @@ async function shortenUrl() {
         document.querySelector('.btn-text').style.display = 'inline';
         document.querySelector('.btn-loading').style.display = 'none';
     }
+}
+
+// Validar custom code
+function isValidCustomCode(code) {
+    const regex = /^[a-zA-Z0-9-]{3,30}$/;
+    return regex.test(code);
 }
 
 // Validar URL
@@ -144,29 +182,53 @@ function createNew() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Carregar lista de URLs
-async function loadUrls() {
+// Busca com debounce
+function handleSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        currentSearch = searchInput.value.trim();
+        currentPage = 1;
+        loadUrls();
+    }, 500);
+}
+
+// Carregar lista de URLs com paginação e busca
+async function loadUrls(page = currentPage) {
     urlsList.innerHTML = '<p class="loading">Carregando...</p>';
-    
+
     try {
-        const response = await fetch('/api/urls');
-        const urls = await response.json();
-        
-        if (urls.length === 0) {
+        const params = new URLSearchParams({
+            page: page,
+            limit: 10
+        });
+
+        if (currentSearch) {
+            params.append('search', currentSearch);
+        }
+
+        const response = await fetch(`/api/urls?${params}`);
+        const data = await response.json();
+
+        if (data.urls.length === 0) {
             urlsList.innerHTML = `
                 <div class="empty-state">
                     <p>📭</p>
-                    <p>Nenhum link criado ainda</p>
+                    <p>${currentSearch ? 'Nenhum link encontrado' : 'Nenhum link criado ainda'}</p>
                 </div>
             `;
+            document.getElementById('pagination').style.display = 'none';
             return;
         }
-        
-        urlsList.innerHTML = urls.map(url => `
+
+        urlsList.innerHTML = data.urls.map(url => `
             <div class="url-item">
                 <div class="url-item-header">
                     <div class="url-info">
-                        <div class="url-short">${url.short_url}</div>
+                        <div class="url-short">
+                            ${url.short_url}
+                            ${url.is_custom ? '<span style="color: var(--success-color); margin-left: 5px;">✨ Personalizado</span>' : ''}
+                            ${url.expires_at ? `<span style="color: var(--danger-color); margin-left: 5px;">⏰ Expira: ${formatDate(url.expires_at)}</span>` : ''}
+                        </div>
                         <div class="url-original" title="${url.original_url}">
                             ${url.original_url}
                         </div>
@@ -190,7 +252,11 @@ async function loadUrls() {
                 </div>
             </div>
         `).join('');
-        
+
+        // Renderizar paginação
+        renderPagination(data.pagination);
+        currentPage = page;
+
     } catch (error) {
         urlsList.innerHTML = `
             <div class="empty-state">
@@ -198,7 +264,30 @@ async function loadUrls() {
                 <p>Erro ao carregar URLs: ${error.message}</p>
             </div>
         `;
+        document.getElementById('pagination').style.display = 'none';
     }
+}
+
+// Renderizar paginação
+function renderPagination(pagination) {
+    const paginationDiv = document.getElementById('pagination');
+
+    if (pagination.totalPages <= 1) {
+        paginationDiv.style.display = 'none';
+        return;
+    }
+
+    paginationDiv.style.display = 'flex';
+
+    let html = `
+        <button onclick="loadUrls(1)" ${pagination.page === 1 ? 'disabled' : ''}>Primeira</button>
+        <button onclick="loadUrls(${pagination.page - 1})" ${pagination.page === 1 ? 'disabled' : ''}>Anterior</button>
+        <span class="page-info">Página ${pagination.page} de ${pagination.totalPages}</span>
+        <button onclick="loadUrls(${pagination.page + 1})" ${pagination.page === pagination.totalPages ? 'disabled' : ''}>Próxima</button>
+        <button onclick="loadUrls(${pagination.totalPages})" ${pagination.page === pagination.totalPages ? 'disabled' : ''}>Última</button>
+    `;
+
+    paginationDiv.innerHTML = html;
 }
 
 // Copiar URL da lista
@@ -219,27 +308,71 @@ async function copyUrlToClipboard(url) {
     }
 }
 
-// Ver estatísticas
+// Ver estatísticas com modal
 async function viewStats(shortCode) {
+    const modal = document.getElementById('statsModal');
+    const content = document.getElementById('statsContent');
+
+    modal.style.display = 'flex';
+    content.innerHTML = '<p class="loading">Carregando...</p>';
+
     try {
         const response = await fetch(`/api/stats/${shortCode}`);
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.error);
         }
-        
-        alert(`
-📊 Estatísticas do Link
 
-🔗 Link Curto: ${data.short_url}
-🌐 URL Original: ${data.original_url}
-👆 Total de Cliques: ${data.clicks}
-📅 Criado em: ${formatDate(data.created_at)}
-${data.last_accessed ? `🕐 Último acesso: ${formatDate(data.last_accessed)}` : '🕐 Ainda não foi acessado'}
-        `);
+        content.innerHTML = `
+            <div class="stat-row">
+                <label>🔗 Link Curto:</label>
+                <div class="value">${data.short_url}</div>
+            </div>
+            <div class="stat-row">
+                <label>🌐 URL Original:</label>
+                <div class="value" style="word-break: break-all;">${data.original_url}</div>
+            </div>
+            <div class="stat-row">
+                <label>👆 Total de Cliques:</label>
+                <div class="value">${data.clicks}</div>
+            </div>
+            <div class="stat-row">
+                <label>📅 Criado em:</label>
+                <div class="value">${formatDate(data.created_at)}</div>
+            </div>
+            ${data.last_accessed ? `
+            <div class="stat-row">
+                <label>🕐 Último acesso:</label>
+                <div class="value">${formatDate(data.last_accessed)}</div>
+            </div>
+            ` : `
+            <div class="stat-row">
+                <label>🕐 Status:</label>
+                <div class="value">Ainda não foi acessado</div>
+            </div>
+            `}
+        `;
     } catch (error) {
-        alert('Erro ao carregar estatísticas: ' + error.message);
+        content.innerHTML = `
+            <div class="empty-state">
+                <p>❌</p>
+                <p>Erro ao carregar estatísticas: ${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+// Fechar modal de estatísticas
+function closeStatsModal() {
+    document.getElementById('statsModal').style.display = 'none';
+}
+
+// Fechar modal ao clicar fora dele
+window.onclick = function(event) {
+    const modal = document.getElementById('statsModal');
+    if (event.target === modal) {
+        closeStatsModal();
     }
 }
 

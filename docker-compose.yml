@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Banco de dados MySQL
+  db:
+    image: mysql:8.0
+    container_name: encurtador-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-url_shortener}
+      MYSQL_USER: ${DB_USER:-urlshort_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secure_password}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - encurtador-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicação Node.js
+  app:
+    build: .
+    container_name: encurtador-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-url_shortener}
+      DB_USER: ${DB_USER:-urlshort_user}
+      DB_PASSWORD: ${DB_PASSWORD:-secure_password}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - encurtador-network
+    volumes:
+      - ./logs:/app/logs
+
+networks:
+  encurtador-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

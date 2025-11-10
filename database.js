@@ -22,12 +22,15 @@ const initDatabase = async () => {
       CREATE TABLE IF NOT EXISTS urls (
         id INT AUTO_INCREMENT PRIMARY KEY,
         original_url TEXT NOT NULL,
-        short_code VARCHAR(10) UNIQUE NOT NULL,
+        short_code VARCHAR(50) UNIQUE NOT NULL,
         qr_code LONGTEXT,
         clicks INT DEFAULT 0,
+        is_custom BOOLEAN DEFAULT FALSE,
+        expires_at TIMESTAMP NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_accessed TIMESTAMP NULL,
-        INDEX idx_short_code (short_code)
+        INDEX idx_short_code (short_code),
+        INDEX idx_expires_at (expires_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
     

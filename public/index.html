@@ -16,10 +16,10 @@
         <!-- Formulário de Encurtamento -->
         <section class="url-form">
             <div class="input-group">
-                <input 
-                    type="url" 
-                    id="urlInput" 
-                    placeholder="Cole sua URL aqui (ex: https://exemplo.com.br)" 
+                <input
+                    type="url"
+                    id="urlInput"
+                    placeholder="Cole sua URL aqui (ex: https://exemplo.com.br)"
                     required
                 >
                 <button id="shortenBtn" class="btn-primary">
@@ -27,6 +27,37 @@
                     <span class="btn-loading" style="display: none;">⏳</span>
                 </button>
             </div>
+
+            <!-- Opções Avançadas -->
+            <div class="advanced-options">
+                <button class="btn-toggle-options" onclick="toggleAdvancedOptions()">
+                    ⚙️ Opções Avançadas
+                </button>
+                <div id="advancedOptionsContent" class="options-content" style="display: none;">
+                    <div class="option-group">
+                        <label for="customCodeInput">Código Personalizado (opcional):</label>
+                        <input
+                            type="text"
+                            id="customCodeInput"
+                            placeholder="ex: meu-link"
+                            pattern="[a-zA-Z0-9-]{3,30}"
+                            title="Apenas letras, números e hífens (3-30 caracteres)"
+                        >
+                        <small>Deixe em branco para gerar automaticamente</small>
+                    </div>
+                    <div class="option-group">
+                        <label for="expiresInInput">Expiração (em dias):</label>
+                        <select id="expiresInInput">
+                            <option value="">Sem expiração</option>
+                            <option value="1">1 dia</option>
+                            <option value="7">7 dias</option>
+                            <option value="30">30 dias</option>
+                            <option value="90">90 dias</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div id="errorMessage" class="error-message" style="display: none;"></div>
         </section>
 
@@ -85,11 +116,35 @@
                 <h2>📊 Seus Links Criados</h2>
                 <button class="btn-refresh" onclick="loadUrls()">🔄 Atualizar</button>
             </div>
-            
+
+            <!-- Busca -->
+            <div class="search-bar">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="🔍 Buscar por URL ou código..."
+                    onkeyup="handleSearch()"
+                >
+            </div>
+
             <div id="urlsList" class="urls-container">
                 <p class="loading">Carregando...</p>
             </div>
+
+            <!-- Paginação -->
+            <div id="pagination" class="pagination" style="display: none;"></div>
         </section>
+
+        <!-- Modal de Estatísticas -->
+        <div id="statsModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="modal-close" onclick="closeStatsModal()">&times;</span>
+                <h2>📊 Estatísticas do Link</h2>
+                <div id="statsContent" class="stats-modal-content">
+                    <p class="loading">Carregando...</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer>

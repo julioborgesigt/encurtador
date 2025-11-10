@@ -1,21 +1,93 @@
-# 🔗 URL Shortener - Versão MySQL/MariaDB
+# 🔗 URL Shortener - Versão Avançada
 
-Sistema web completo para criar links curtos e QR codes usando MySQL ou MariaDB como banco de dados.
+Sistema web completo e profissional para criar links curtos e QR codes usando MySQL ou MariaDB como banco de dados.
 
-## 🎯 Características desta Versão
+## ✨ Características Principais
 
-- ✅ **MySQL/MariaDB** como banco de dados
-- ✅ Compatível com MySQL 5.7+ e MariaDB 10.3+
-- ✅ Pool de conexões otimizado
-- ✅ Configuração via variáveis de ambiente
-- ✅ Suporte UTF-8 completo
+### Funcionalidades
+- ✅ **Encurtamento de URLs** com geração automática de códigos
+- ✅ **Códigos Personalizados** - escolha seu próprio código curto
+- ✅ **QR Codes** gerados automaticamente para cada link
+- ✅ **Expiração de Links** - defina prazo de validade (1, 7, 30, 90 dias)
+- ✅ **Estatísticas Detalhadas** - rastreamento de cliques e acessos
+- ✅ **Busca e Paginação** - encontre seus links facilmente
+- ✅ **Interface Responsiva** - funciona em desktop e mobile
+
+### Segurança
+- 🔒 **Rate Limiting** - proteção contra spam e abuso
+- 🔒 **Validação Avançada de URLs** - bloqueia URLs maliciosas e IPs privados
+- 🔒 **Helmet.js** - cabeçalhos de segurança HTTP
+- 🔒 **Compressão** - respostas otimizadas
+
+### Infraestrutura
+- 🚀 **Docker/Docker Compose** - deploy simplificado
+- 🚀 **Healthcheck** - monitoramento de saúde da aplicação
+- 🚀 **Pool de Conexões** - otimização de banco de dados
+- 🚀 **MySQL/MariaDB** compatível com versões 5.7+ e 10.3+
 
 ## 📋 Pré-requisitos
 
+**Opção 1 - Docker (Recomendado):**
+- Docker
+- Docker Compose
+
+**Opção 2 - Manual:**
 - Node.js (versão 14+)
 - MySQL 5.7+ ou MariaDB 10.3+
 
 ## 🚀 Instalação
+
+### Opção 1: Docker (Recomendado)
+
+A forma mais rápida e fácil de rodar o projeto:
+
+```bash
+# 1. Clonar o repositório
+git clone <seu-repositorio>
+cd encurtador
+
+# 2. Copiar arquivo de configuração
+cp .env.example .env
+
+# 3. Editar .env com suas configurações (opcional)
+nano .env
+
+# 4. Iniciar com Docker Compose
+docker-compose up -d
+
+# 5. Verificar logs
+docker-compose logs -f
+
+# 6. Acessar
+# http://localhost:3000
+```
+
+O Docker Compose irá:
+- Criar e configurar o banco de dados MySQL automaticamente
+- Instalar todas as dependências
+- Iniciar a aplicação
+- Configurar a rede entre os containers
+- Criar volumes persistentes para os dados
+
+**Comandos úteis:**
+```bash
+# Parar os containers
+docker-compose down
+
+# Parar e remover volumes (CUIDADO: apaga os dados)
+docker-compose down -v
+
+# Ver logs
+docker-compose logs -f app
+
+# Reiniciar apenas a aplicação
+docker-compose restart app
+
+# Entrar no container
+docker-compose exec app sh
+```
+
+### Opção 2: Instalação Manual
 
 ### 1. Instalar MySQL/MariaDB
 
@@ -138,24 +210,107 @@ pscale connect url-shortener main
 2. Configure security groups
 3. Use o endpoint fornecido
 
-## 🎨 Funcionalidades
+## 🎨 Funcionalidades Detalhadas
 
-- Encurtar URLs
-- Gerar QR codes automaticamente
-- Rastrear cliques
-- Ver estatísticas
-- Interface responsiva
-- API REST completa
+### 1. Encurtamento de URLs
+- Gera códigos curtos automaticamente (7 caracteres)
+- Validação robusta de URLs
+- Bloqueia URLs maliciosas e IPs privados
+- Detecta URLs duplicadas
+
+### 2. Códigos Personalizados
+- Escolha seu próprio código curto (ex: `meu-link`)
+- Validação de formato (3-30 caracteres, letras, números e hífens)
+- Códigos reservados protegidos (api, admin, etc.)
+- Verifica disponibilidade em tempo real
+
+### 3. Expiração de Links
+- Defina prazo de validade: 1, 7, 30 ou 90 dias
+- Links expirados são automaticamente removidos
+- Mensagem personalizada para links expirados
+- Sem expiração por padrão
+
+### 4. QR Codes
+- Gerados automaticamente para cada link
+- Download em formato PNG
+- Alta qualidade e escaneáveis
+- Armazenados no banco de dados
+
+### 5. Estatísticas
+- Contador de cliques
+- Data/hora do último acesso
+- Data de criação
+- Modal visual com todas as informações
+- Histórico completo de cada link
+
+### 6. Busca e Paginação
+- Busca por URL ou código curto
+- Paginação de 10 itens por página
+- Navegação rápida (primeira, anterior, próxima, última)
+- Filtros em tempo real
+
+### 7. Interface Moderna
+- Design responsivo (mobile-first)
+- Animações suaves
+- Feedback visual para todas as ações
+- Opções avançadas expansíveis
+- Modal para estatísticas
+- Copiar para área de transferência
+- Tema moderno com gradientes
 
 ## 🔌 API Endpoints
 
-| Método | Endpoint              | Descrição           |
-|--------|-----------------------|---------------------|
-| POST   | /api/shorten          | Criar link curto    |
-| GET    | /api/urls             | Listar todas URLs   |
-| GET    | /api/stats/:code      | Ver estatísticas    |
-| DELETE | /api/urls/:code       | Deletar URL         |
-| GET    | /:shortCode           | Redirecionar        |
+| Método | Endpoint              | Descrição                           | Parâmetros                                      |
+|--------|-----------------------|-------------------------------------|-------------------------------------------------|
+| GET    | /health               | Healthcheck da aplicação            | -                                               |
+| POST   | /api/shorten          | Criar link curto                    | `url`, `customCode` (opcional), `expiresIn` (opcional) |
+| GET    | /api/urls             | Listar URLs com paginação e busca   | `page`, `limit`, `search` (query params)        |
+| GET    | /api/stats/:code      | Ver estatísticas detalhadas         | -                                               |
+| DELETE | /api/urls/:code       | Deletar URL                         | -                                               |
+| GET    | /:shortCode           | Redirecionar para URL original      | -                                               |
+
+### Exemplos de uso da API:
+
+**Criar link simples:**
+```bash
+curl -X POST http://localhost:3000/api/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://exemplo.com"}'
+```
+
+**Criar link com código personalizado:**
+```bash
+curl -X POST http://localhost:3000/api/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://exemplo.com", "customCode": "meu-link"}'
+```
+
+**Criar link com expiração (7 dias):**
+```bash
+curl -X POST http://localhost:3000/api/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://exemplo.com", "expiresIn": 7}'
+```
+
+**Listar URLs com paginação:**
+```bash
+curl "http://localhost:3000/api/urls?page=1&limit=10"
+```
+
+**Buscar URLs:**
+```bash
+curl "http://localhost:3000/api/urls?search=exemplo"
+```
+
+**Ver estatísticas:**
+```bash
+curl http://localhost:3000/api/stats/abc123
+```
+
+**Healthcheck:**
+```bash
+curl http://localhost:3000/health
+```
 
 ## 🐛 Troubleshooting
 
