@@ -15,6 +15,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configurar trust proxy para funcionar com Render, Heroku, etc.
+// Isso é necessário para que express-rate-limit e sessões funcionem corretamente
+app.set('trust proxy', 1);
+
 // Configurar session store com MySQL
 const sessionStore = new MySQLStore({
   clearExpired: true,
