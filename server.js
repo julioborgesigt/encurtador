@@ -131,7 +131,7 @@ app.get('/', (req, res) => {
 
 // API: Criar link curto
 app.post('/api/shorten', createLimiter, async (req, res) => {
-  const { url, customCode, expiresIn } = req.body;
+  const { url, customCode, expiresIn, description } = req.body;
 
   if (!url || !isValidUrl(url)) {
     return res.status(400).json({
@@ -184,6 +184,7 @@ app.post('/api/shorten', createLimiter, async (req, res) => {
             original_url: row.original_url,
             short_url: shortUrl,
             short_code: row.short_code,
+            description: row.description,
             qr_code: row.qr_code,
             clicks: row.clicks,
             is_custom: row.is_custom,
@@ -211,8 +212,8 @@ app.post('/api/shorten', createLimiter, async (req, res) => {
 
     // Salvar no banco de dados
     await pool.query(
-      'INSERT INTO urls (original_url, short_code, qr_code, is_custom, expires_at) VALUES (?, ?, ?, ?, ?)',
-      [url, shortCode, qrCodeDataURL, isCustom, expiresAt]
+      'INSERT INTO urls (original_url, short_code, description, qr_code, is_custom, expires_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [url, shortCode, description || null, qrCodeDataURL, isCustom, expiresAt]
     );
 
     const shortUrl = `${req.protocol}://${req.get('host')}/${shortCode}`;
@@ -221,6 +222,7 @@ app.post('/api/shorten', createLimiter, async (req, res) => {
       original_url: url,
       short_url: shortUrl,
       short_code: shortCode,
+      description: description || null,
       qr_code: qrCodeDataURL,
       clicks: 0,
       is_custom: isCustom,
@@ -240,20 +242,41 @@ app.get('/api/urls', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || '';
+    const month = req.query.month || '';
+    const year = req.query.year || '';
     const offset = (page - 1) * limit;
 
     let query = 'SELECT * FROM urls';
     let countQuery = 'SELECT COUNT(*) as total FROM urls';
     const params = [];
     const countParams = [];
+    const conditions = [];
 
-    // Adicionar busca se fornecida
+    // Adicionar busca se fornecida (incluindo description)
     if (search) {
-      query += ' WHERE original_url LIKE ? OR short_code LIKE ?';
-      countQuery += ' WHERE original_url LIKE ? OR short_code LIKE ?';
+      conditions.push('(original_url LIKE ? OR short_code LIKE ? OR description LIKE ?)');
       const searchParam = `%${search}%`;
-      params.push(searchParam, searchParam);
-      countParams.push(searchParam, searchParam);
+      params.push(searchParam, searchParam, searchParam);
+      countParams.push(searchParam, searchParam, searchParam);
+    }
+
+    // Filtrar por mês e ano
+    if (year) {
+      if (month) {
+        conditions.push('YEAR(created_at) = ? AND MONTH(created_at) = ?');
+        params.push(parseInt(year), parseInt(month));
+        countParams.push(parseInt(year), parseInt(month));
+      } else {
+        conditions.push('YEAR(created_at) = ?');
+        params.push(parseInt(year));
+        countParams.push(parseInt(year));
+      }
+    }
+
+    // Adicionar condições à query
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+      countQuery += ' WHERE ' + conditions.join(' AND ');
     }
 
     // Adicionar ordenação e paginação
@@ -270,6 +293,7 @@ app.get('/api/urls', async (req, res) => {
       original_url: row.original_url,
       short_url: `${req.protocol}://${req.get('host')}/${row.short_code}`,
       short_code: row.short_code,
+      description: row.description,
       qr_code: row.qr_code,
       clicks: row.clicks,
       is_custom: row.is_custom,
@@ -313,6 +337,7 @@ app.get('/api/stats/:shortCode', async (req, res) => {
       original_url: row.original_url,
       short_url: `${req.protocol}://${req.get('host')}/${row.short_code}`,
       short_code: row.short_code,
+      description: row.description,
       clicks: row.clicks,
       created_at: row.created_at,
       last_accessed: row.last_accessed

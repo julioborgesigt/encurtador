@@ -1,5 +1,6 @@
 // Elementos do DOM
 const urlInput = document.getElementById('urlInput');
+const descriptionInput = document.getElementById('descriptionInput');
 const customCodeInput = document.getElementById('customCodeInput');
 const expiresInInput = document.getElementById('expiresInInput');
 const shortenBtn = document.getElementById('shortenBtn');
@@ -12,16 +13,21 @@ const clickCount = document.getElementById('clickCount');
 const createdDate = document.getElementById('createdDate');
 const urlsList = document.getElementById('urlsList');
 const searchInput = document.getElementById('searchInput');
+const monthFilter = document.getElementById('monthFilter');
+const yearFilter = document.getElementById('yearFilter');
 
 // Dados da URL atual
 let currentUrlData = null;
 let currentPage = 1;
 let currentSearch = '';
+let currentMonth = '';
+let currentYear = '';
 let searchTimeout = null;
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     loadUrls();
+    populateYearFilter();
 });
 
 shortenBtn.addEventListener('click', shortenUrl);
@@ -45,6 +51,7 @@ function toggleAdvancedOptions() {
 // Função principal: Encurtar URL
 async function shortenUrl() {
     const url = urlInput.value.trim();
+    const description = descriptionInput.value.trim();
     const customCode = customCodeInput.value.trim();
     const expiresIn = expiresInInput.value;
 
@@ -73,6 +80,7 @@ async function shortenUrl() {
 
     try {
         const body = { url };
+        if (description) body.description = description;
         if (customCode) body.customCode = customCode;
         if (expiresIn) body.expiresIn = expiresIn;
 
@@ -95,6 +103,7 @@ async function shortenUrl() {
         displayResult(data);
 
         // Limpar campos
+        descriptionInput.value = '';
         customCodeInput.value = '';
         expiresInInput.value = '';
 
@@ -206,6 +215,14 @@ async function loadUrls(page = currentPage) {
             params.append('search', currentSearch);
         }
 
+        if (currentMonth) {
+            params.append('month', currentMonth);
+        }
+
+        if (currentYear) {
+            params.append('year', currentYear);
+        }
+
         const response = await fetch(`/api/urls?${params}`);
         const data = await response.json();
 
@@ -224,6 +241,7 @@ async function loadUrls(page = currentPage) {
             <div class="url-item">
                 <div class="url-item-header">
                     <div class="url-info">
+                        ${url.description ? `<div class="url-description">📝 ${url.description}</div>` : ''}
                         <div class="url-short">
                             ${url.short_url}
                             ${url.is_custom ? '<span style="color: var(--success-color); margin-left: 5px;">✨ Personalizado</span>' : ''}
@@ -439,4 +457,108 @@ function showError(message) {
 // Esconder erro
 function hideError() {
     errorMessage.style.display = 'none';
+}
+
+// Popular filtro de anos
+function populateYearFilter() {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2020; // Ano inicial do sistema
+
+    for (let year = currentYear; year >= startYear; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearFilter.appendChild(option);
+    }
+}
+
+// Manipular mudança de filtros
+function handleFilterChange() {
+    currentMonth = monthFilter.value;
+    currentYear = yearFilter.value;
+    currentPage = 1;
+    loadUrls();
+}
+
+// Limpar filtros
+function clearFilters() {
+    searchInput.value = '';
+    monthFilter.value = '';
+    yearFilter.value = '';
+    currentSearch = '';
+    currentMonth = '';
+    currentYear = '';
+    currentPage = 1;
+    loadUrls();
+}
+
+// Baixar PDF com informações do link
+async function downloadPDF() {
+    if (!currentUrlData) return;
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Título
+        const title = currentUrlData.description || 'Link Encurtado';
+        doc.setFontSize(20);
+        doc.setFont(undefined, 'bold');
+        doc.text(title, 105, 20, { align: 'center' });
+
+        // Linha
+        doc.setLineWidth(0.5);
+        doc.line(20, 25, 190, 25);
+
+        // URL Original
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('URL Original:', 20, 40);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(10);
+        const originalUrlLines = doc.splitTextToSize(currentUrlData.original_url, 170);
+        doc.text(originalUrlLines, 20, 48);
+
+        // URL Encurtada
+        let yPosition = 48 + (originalUrlLines.length * 7) + 10;
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('URL Encurtada:', 20, yPosition);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(10);
+        doc.text(currentUrlData.short_url, 20, yPosition + 8);
+
+        // QR Code
+        yPosition += 20;
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('QR Code:', 20, yPosition);
+
+        // Adicionar imagem do QR Code
+        yPosition += 5;
+        const qrCodeSize = 80;
+        doc.addImage(currentUrlData.qr_code, 'PNG', 65, yPosition, qrCodeSize, qrCodeSize);
+
+        // Informações adicionais
+        yPosition += qrCodeSize + 15;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Criado em: ${formatDate(currentUrlData.created_at)}`, 20, yPosition);
+        doc.text(`Cliques: ${currentUrlData.clicks}`, 20, yPosition + 7);
+
+        if (currentUrlData.description) {
+            doc.text(`Descrição: ${currentUrlData.description}`, 20, yPosition + 14);
+        }
+
+        // Salvar PDF
+        const fileName = currentUrlData.description
+            ? `${currentUrlData.description.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`
+            : `link_${currentUrlData.short_code}.pdf`;
+
+        doc.save(fileName);
+
+    } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        alert('Erro ao gerar PDF. Por favor, tente novamente.');
+    }
 }
