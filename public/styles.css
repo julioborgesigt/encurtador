@@ -262,14 +262,30 @@ header h1 {
 .qr-code-container label {
     display: block;
     margin-bottom: 15px;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.qr-code-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
 }
 
 .qr-code {
     max-width: 200px;
+    width: 100%;
+    height: auto;
     border: 3px solid white;
     border-radius: 8px;
     box-shadow: var(--shadow);
-    margin-bottom: 15px;
+}
+
+.qr-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .stats {
@@ -387,6 +403,17 @@ header h1 {
     min-width: 0;
 }
 
+.url-description {
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    padding: 5px 10px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 6px;
+    border-left: 3px solid var(--primary-color);
+}
+
 .url-short {
     font-weight: 600;
     color: var(--primary-color);
@@ -456,9 +483,13 @@ header h1 {
     margin-top: 10px;
 }
 
-/* Busca */
-.search-bar {
+/* Busca e Filtros */
+.search-filter-container {
     margin-bottom: 20px;
+}
+
+.search-bar {
+    margin-bottom: 15px;
 }
 
 .search-bar input {
@@ -474,6 +505,48 @@ header h1 {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filters-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filters-bar select {
+    flex: 1;
+    min-width: 150px;
+    padding: 10px 15px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.filters-bar select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-clear-filters {
+    padding: 10px 20px;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-clear-filters:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
 }
 
 /* Paginação */

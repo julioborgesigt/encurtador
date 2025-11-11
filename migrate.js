@@ -94,14 +94,56 @@ async function migrate() {
       console.log('   ℹ️  Coluna short_code já tem tamanho adequado');
     }
 
+    // Verificar se a coluna description existe
+    console.log('\n📝 Verificando coluna description...');
+    const [descriptionExists] = await connection.query(`
+      SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'urls'
+      AND COLUMN_NAME = 'description'
+    `);
+
+    if (descriptionExists[0].count === 0) {
+      console.log('   ➕ Adicionando coluna description...');
+      await connection.query(`
+        ALTER TABLE urls
+        ADD COLUMN description VARCHAR(255) DEFAULT NULL AFTER short_code
+      `);
+      console.log('   ✅ Coluna description adicionada com sucesso!');
+    } else {
+      console.log('   ℹ️  Coluna description já existe');
+    }
+
+    // Verificar se o índice em created_at existe
+    console.log('\n📝 Verificando índice idx_created_at...');
+    const [createdAtIndexExists] = await connection.query(`
+      SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'urls'
+      AND INDEX_NAME = 'idx_created_at'
+    `);
+
+    if (createdAtIndexExists[0].count === 0) {
+      console.log('   ➕ Criando índice idx_created_at...');
+      await connection.query(`
+        ALTER TABLE urls
+        ADD INDEX idx_created_at (created_at)
+      `);
+      console.log('   ✅ Índice idx_created_at criado com sucesso!');
+    } else {
+      console.log('   ℹ️  Índice idx_created_at já existe');
+    }
+
     connection.release();
 
     console.log('\n✅ Migração concluída com sucesso!\n');
     console.log('📊 Estrutura da tabela atualizada:');
     console.log('   - is_custom: BOOLEAN (indica se o código é personalizado)');
     console.log('   - expires_at: TIMESTAMP (data de expiração do link)');
+    console.log('   - description: VARCHAR(255) (descrição do link)');
     console.log('   - short_code: VARCHAR(50) (suporta códigos maiores)');
-    console.log('   - idx_expires_at: INDEX (otimização de queries)\n');
+    console.log('   - idx_expires_at: INDEX (otimização de queries)');
+    console.log('   - idx_created_at: INDEX (otimização de filtros de data)\n');
 
     process.exit(0);
   } catch (error) {
