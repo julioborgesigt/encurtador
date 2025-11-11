@@ -252,7 +252,7 @@ async function loadUrls(page = currentPage) {
                         </div>
                     </div>
                     <div class="url-actions">
-                        <button class="btn-icon" onclick="copyUrlToClipboard('${url.short_url}')" title="Copiar">
+                        <button class="btn-icon" onclick="copyUrlToClipboard('${url.short_url}', event)" title="Copiar">
                             📋
                         </button>
                         <button class="btn-icon" onclick="viewStats('${url.short_code}')" title="Ver estatísticas">
@@ -309,20 +309,48 @@ function renderPagination(pagination) {
 }
 
 // Copiar URL da lista
-async function copyUrlToClipboard(url) {
+async function copyUrlToClipboard(url, event) {
     try {
         await navigator.clipboard.writeText(url);
-        
-        // Feedback simples
-        const button = event.target;
-        const originalText = button.textContent;
-        button.textContent = '✅';
-        
-        setTimeout(() => {
-            button.textContent = originalText;
-        }, 1500);
+
+        // Feedback elegante no botão
+        const button = event ? event.currentTarget : event;
+        if (button) {
+            const originalText = button.textContent;
+            const originalBg = button.style.backgroundColor;
+
+            button.textContent = '✅ Copiado!';
+            button.style.backgroundColor = '#10b981';
+            button.style.transform = 'scale(1.1)';
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.backgroundColor = originalBg;
+                button.style.transform = '';
+            }, 2000);
+        }
+
+        // Toast notification elegante
+        showToast('✅ Link copiado com sucesso!', 'success');
+
     } catch (error) {
-        alert('Erro ao copiar URL');
+        console.error('Erro ao copiar:', error);
+
+        // Fallback: tentar copiar de outra forma
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast('✅ Link copiado!', 'success');
+        } catch (fallbackError) {
+            showToast('❌ Não foi possível copiar automaticamente', 'error');
+        }
     }
 }
 
@@ -459,6 +487,34 @@ function hideError() {
     errorMessage.style.display = 'none';
 }
 
+// Mostrar toast notification elegante
+function showToast(message, type = 'success') {
+    // Remover toasts anteriores
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+
+    // Criar toast
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.textContent = message;
+
+    // Adicionar ao body
+    document.body.appendChild(toast);
+
+    // Animar entrada
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    // Remover após 3 segundos
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
 // Popular filtro de anos
 function populateYearFilter() {
     const currentYear = new Date().getFullYear();
@@ -506,7 +562,7 @@ async function downloadPDF() {
         doc.setFont(undefined, 'bold');
         doc.text(title, 105, 20, { align: 'center' });
 
-        // Linha
+        // Linha decorativa
         doc.setLineWidth(0.5);
         doc.line(20, 25, 190, 25);
 
@@ -534,21 +590,16 @@ async function downloadPDF() {
         doc.setFont(undefined, 'bold');
         doc.text('QR Code:', 20, yPosition);
 
-        // Adicionar imagem do QR Code
+        // Adicionar imagem do QR Code centralizada
         yPosition += 5;
         const qrCodeSize = 80;
         doc.addImage(currentUrlData.qr_code, 'PNG', 65, yPosition, qrCodeSize, qrCodeSize);
 
-        // Informações adicionais
-        yPosition += qrCodeSize + 15;
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Criado em: ${formatDate(currentUrlData.created_at)}`, 20, yPosition);
-        doc.text(`Cliques: ${currentUrlData.clicks}`, 20, yPosition + 7);
-
-        if (currentUrlData.description) {
-            doc.text(`Descrição: ${currentUrlData.description}`, 20, yPosition + 14);
-        }
+        // Rodapé discreto
+        yPosition += qrCodeSize + 10;
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text('Gerado pelo Encurtador de URLs', 105, yPosition, { align: 'center' });
 
         // Salvar PDF
         const fileName = currentUrlData.description
