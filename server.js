@@ -5,12 +5,31 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const helmet = require('helmet');
 const validator = require('validator');
+const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
+const passport = require('./config/passport');
 const pool = require('./database');
 const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configurar session store com MySQL
+const sessionStore = new MySQLStore({
+  clearExpired: true,
+  checkExpirationInterval: 900000, // 15 minutos
+  expiration: 86400000, // 24 horas
+  createDatabaseTable: true,
+  schema: {
+    tableName: 'sessions',
+    columnNames: {
+      session_id: 'session_id',
+      expires: 'expires',
+      data: 'data'
+    }
+  }
+}, pool);
 
 // Middleware de segurança
 app.use(helmet({
@@ -39,6 +58,30 @@ app.use('/api/', limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+// Configurar sessões
+app.use(session({
+  key: 'url_shortener_session',
+  secret: process.env.SESSION_SECRET || 'seu-secret-super-secreto-aqui-mude-em-producao',
+  store: sessionStore,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24, // 24 horas
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // HTTPS em produção
+    sameSite: 'lax'
+  }
+}));
+
+// Inicializar Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Rotas de autenticação
+const authRoutes = require('./routes/auth');
+const { ensureAuthenticated, ensureOwnership } = require('./middleware/auth');
+app.use('/auth', authRoutes);
 
 // Função auxiliar para validar URL
 function isValidUrl(string) {
@@ -210,10 +253,13 @@ app.post('/api/shorten', createLimiter, async (req, res) => {
       `${req.protocol}://${req.get('host')}/${shortCode}`
     );
 
+    // Obter user_id se autenticado
+    const userId = req.isAuthenticated() ? req.user.id : null;
+
     // Salvar no banco de dados
     await pool.query(
-      'INSERT INTO urls (original_url, short_code, description, qr_code, is_custom, expires_at) VALUES (?, ?, ?, ?, ?, ?)',
-      [url, shortCode, description || null, qrCodeDataURL, isCustom, expiresAt]
+      'INSERT INTO urls (user_id, original_url, short_code, description, qr_code, is_custom, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, url, shortCode, description || null, qrCodeDataURL, isCustom, expiresAt]
     );
 
     const shortUrl = `${req.protocol}://${req.get('host')}/${shortCode}`;
@@ -251,6 +297,16 @@ app.get('/api/urls', async (req, res) => {
     const params = [];
     const countParams = [];
     const conditions = [];
+
+    // Se usuário está autenticado, mostrar apenas suas URLs
+    if (req.isAuthenticated()) {
+      conditions.push('(user_id = ? OR user_id IS NULL)');
+      params.push(req.user.id);
+      countParams.push(req.user.id);
+    } else {
+      // Se não autenticado, mostrar apenas URLs sem dono (criadas antes do sistema de auth)
+      conditions.push('user_id IS NULL');
+    }
 
     // Adicionar busca se fornecida (incluindo description)
     if (search) {
@@ -348,20 +404,37 @@ app.get('/api/stats/:shortCode', async (req, res) => {
   }
 });
 
-// API: Deletar URL
-app.delete('/api/urls/:shortCode', async (req, res) => {
+// API: Deletar URL (requer autenticação e ownership)
+app.delete('/api/urls/:shortCode', ensureAuthenticated, async (req, res) => {
   const { shortCode } = req.params;
-  
+
   try {
-    const [result] = await pool.query(
+    // Verificar se a URL existe e se o usuário é o dono
+    const [urls] = await pool.query(
+      'SELECT user_id FROM urls WHERE short_code = ?',
+      [shortCode]
+    );
+
+    if (urls.length === 0) {
+      return res.status(404).json({ error: 'URL não encontrada' });
+    }
+
+    const url = urls[0];
+
+    // Se a URL não tem dono (criada antes do auth), permitir deletar
+    // Caso contrário, verificar se o usuário é o dono
+    if (url.user_id && url.user_id !== req.user.id) {
+      return res.status(403).json({
+        error: 'Você não tem permissão para deletar este link'
+      });
+    }
+
+    // Deletar a URL
+    await pool.query(
       'DELETE FROM urls WHERE short_code = ?',
       [shortCode]
     );
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'URL não encontrada' });
-    }
-    
+
     res.json({ message: 'URL deletada com sucesso' });
   } catch (error) {
     console.error('Erro:', error);

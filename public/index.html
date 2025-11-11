@@ -10,8 +10,51 @@
 <body>
     <div class="container">
         <header>
-            <h1>🔗 Encurtador de URLs</h1>
-            <p class="subtitle">Crie links curtos e QR codes instantaneamente</p>
+            <div class="header-top">
+                <div class="header-title">
+                    <h1>🔗 Encurtador de URLs</h1>
+                    <p class="subtitle">Crie links curtos e QR codes instantaneamente</p>
+                </div>
+                <div class="user-section" id="userSection">
+                    <!-- Login button (shown when not authenticated) -->
+                    <button id="loginBtn" class="btn-login" onclick="login()" style="display: none;">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                            <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.837.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                            <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                            <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                        </svg>
+                        Entrar com Google
+                    </button>
+
+                    <!-- User menu (shown when authenticated) -->
+                    <div id="userMenu" class="user-menu" style="display: none;">
+                        <button class="user-avatar" onclick="toggleUserDropdown()">
+                            <img id="userAvatar" src="" alt="User" />
+                            <span id="userName"></span>
+                            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                <path d="M6 9L1 4h10L6 9z"/>
+                            </svg>
+                        </button>
+                        <div id="userDropdown" class="user-dropdown" style="display: none;">
+                            <div class="dropdown-header">
+                                <img id="userAvatarDropdown" src="" alt="User" />
+                                <div>
+                                    <div class="dropdown-name" id="userNameDropdown"></div>
+                                    <div class="dropdown-email" id="userEmailDropdown"></div>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" onclick="logout()">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3v2H4v8h2v2zm4-3l3-3-3-3v2H6v2h4v2z"/>
+                                </svg>
+                                Sair
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <!-- Formulário de Encurtamento -->

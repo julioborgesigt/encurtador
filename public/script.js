@@ -24,10 +24,23 @@ let currentMonth = '';
 let currentYear = '';
 let searchTimeout = null;
 
+// Estado de autenticação
+let currentUser = null;
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    checkAuthStatus();
     loadUrls();
     populateYearFilter();
+});
+
+// Fechar dropdown ao clicar fora
+document.addEventListener('click', (e) => {
+    const userMenu = document.getElementById('userMenu');
+    const userDropdown = document.getElementById('userDropdown');
+    if (userMenu && !userMenu.contains(e.target) && userDropdown) {
+        userDropdown.style.display = 'none';
+    }
 });
 
 shortenBtn.addEventListener('click', shortenUrl);
@@ -37,6 +50,96 @@ urlInput.addEventListener('keypress', (e) => {
         shortenUrl();
     }
 });
+
+// ========================================
+// Funções de Autenticação
+// ========================================
+
+/**
+ * Verificar status de autenticação
+ */
+async function checkAuthStatus() {
+    try {
+        const response = await fetch('/auth/status');
+        const data = await response.json();
+
+        if (data.authenticated && data.user) {
+            currentUser = data.user;
+            showUserMenu(data.user);
+        } else {
+            currentUser = null;
+            showLoginButton();
+        }
+    } catch (error) {
+        console.error('Erro ao verificar autenticação:', error);
+        showLoginButton();
+    }
+}
+
+/**
+ * Mostrar botão de login
+ */
+function showLoginButton() {
+    const loginBtn = document.getElementById('loginBtn');
+    const userMenu = document.getElementById('userMenu');
+
+    if (loginBtn) loginBtn.style.display = 'flex';
+    if (userMenu) userMenu.style.display = 'none';
+}
+
+/**
+ * Mostrar menu do usuário
+ */
+function showUserMenu(user) {
+    const loginBtn = document.getElementById('loginBtn');
+    const userMenu = document.getElementById('userMenu');
+
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (userMenu) userMenu.style.display = 'block';
+
+    // Atualizar informações do usuário
+    const userName = document.getElementById('userName');
+    const userAvatar = document.getElementById('userAvatar');
+    const userNameDropdown = document.getElementById('userNameDropdown');
+    const userEmailDropdown = document.getElementById('userEmailDropdown');
+    const userAvatarDropdown = document.getElementById('userAvatarDropdown');
+
+    if (userName) userName.textContent = user.name.split(' ')[0]; // Primeiro nome
+    if (userAvatar) userAvatar.src = user.picture || '/default-avatar.png';
+    if (userNameDropdown) userNameDropdown.textContent = user.name;
+    if (userEmailDropdown) userEmailDropdown.textContent = user.email;
+    if (userAvatarDropdown) userAvatarDropdown.src = user.picture || '/default-avatar.png';
+}
+
+/**
+ * Iniciar login com Google
+ */
+function login() {
+    window.location.href = '/auth/google';
+}
+
+/**
+ * Fazer logout
+ */
+function logout() {
+    if (confirm('Deseja realmente sair?')) {
+        window.location.href = '/auth/logout';
+    }
+}
+
+/**
+ * Toggle do dropdown do usuário
+ */
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// ========================================
+// Funções da Aplicação
+// ========================================
 
 // Função para toggle das opções avançadas
 function toggleAdvancedOptions() {
