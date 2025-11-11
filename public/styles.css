@@ -34,10 +34,21 @@ body {
 }
 
 header {
-    text-align: center;
     color: white;
     margin-bottom: 40px;
     animation: fadeInDown 0.6s ease;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-title {
+    flex: 1;
+    text-align: center;
 }
 
 header h1 {
@@ -49,6 +60,146 @@ header h1 {
 .subtitle {
     font-size: 1.1rem;
     opacity: 0.95;
+}
+
+/* Autenticação */
+.user-section {
+    display: flex;
+    align-items: center;
+    min-width: 200px;
+    justify-content: flex-end;
+}
+
+.btn-login {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: white;
+    color: var(--dark);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    font-size: 0.95rem;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-login svg {
+    flex-shrink: 0;
+}
+
+.user-menu {
+    position: relative;
+}
+
+.user-avatar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.user-avatar:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.user-avatar img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+}
+
+.dropdown-arrow {
+    margin-left: 4px;
+    transition: transform 0.3s ease;
+}
+
+.user-avatar:hover .dropdown-arrow {
+    transform: translateY(2px);
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    min-width: 280px;
+    overflow: hidden;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--light-gray);
+}
+
+.dropdown-header img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.dropdown-name {
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 4px;
+}
+
+.dropdown-email {
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--border);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    color: var(--dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+    background: var(--light-gray);
+}
+
+.dropdown-item svg {
+    color: var(--gray);
 }
 
 /* Formulário */
@@ -769,6 +920,31 @@ footer {
 @media (max-width: 768px) {
     header h1 {
         font-size: 2rem;
+    }
+
+    .header-top {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .header-title {
+        text-align: center;
+    }
+
+    .user-section {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-login {
+        width: 100%;
+        justify-content: center;
+        max-width: 300px;
+    }
+
+    .user-dropdown {
+        right: 50%;
+        transform: translateX(50%);
     }
 
     .input-group {
