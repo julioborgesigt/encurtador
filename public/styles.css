@@ -1088,14 +1088,48 @@ header h1 {
     padding: 12px 15px;
     background: var(--light-gray);
     border-radius: 8px;
-    cursor: pointer;
+    cursor: move;
     transition: all 0.3s ease;
     border: 2px solid transparent;
+    position: relative;
 }
 
 .checkbox-option:hover {
     background: #e5e7eb;
     border-color: var(--primary-color);
+}
+
+.checkbox-option.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.checkbox-option.drag-over {
+    border-color: var(--success-color);
+    background: rgba(16, 185, 129, 0.1);
+    transform: scale(1.02);
+}
+
+.drag-handle {
+    color: var(--gray);
+    font-size: 1.2rem;
+    cursor: grab;
+    line-height: 1;
+    user-select: none;
+    padding: 0 5px;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.checkbox-option:hover .drag-handle {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.checkbox-option.dragging .drag-handle {
+    cursor: grabbing;
 }
 
 .checkbox-option input[type="checkbox"] {
@@ -1105,7 +1139,7 @@ header h1 {
     accent-color: var(--primary-color);
 }
 
-.checkbox-option span {
+.option-label {
     flex: 1;
     font-weight: 500;
     color: var(--dark);
