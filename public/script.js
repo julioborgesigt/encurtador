@@ -760,6 +760,8 @@ function clearFilters() {
 // Abrir modal de personalização de PDF
 function openPdfCustomizer() {
     document.getElementById('pdfCustomizerModal').style.display = 'flex';
+    // Inicializar drag and drop após abrir o modal
+    setTimeout(() => initializePdfDragAndDrop(), 100);
 }
 
 // Fechar modal de personalização de PDF
@@ -767,88 +769,170 @@ function closePdfCustomizer() {
     document.getElementById('pdfCustomizerModal').style.display = 'none';
 }
 
+// Variáveis para drag and drop
+let draggedElement = null;
+
+// Inicializar drag and drop quando o modal abrir
+function initializePdfDragAndDrop() {
+    const options = document.querySelectorAll('.checkbox-option');
+
+    options.forEach(option => {
+        option.addEventListener('dragstart', handleDragStart);
+        option.addEventListener('dragend', handleDragEnd);
+        option.addEventListener('dragover', handleDragOver);
+        option.addEventListener('drop', handleDrop);
+        option.addEventListener('dragenter', handleDragEnter);
+        option.addEventListener('dragleave', handleDragLeave);
+    });
+}
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+
+    // Remover classe de todos os elementos
+    document.querySelectorAll('.checkbox-option').forEach(option => {
+        option.classList.remove('drag-over');
+    });
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (this !== draggedElement) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+
+    if (draggedElement !== this) {
+        // Obter o container pai
+        const container = document.getElementById('pdfOptions');
+        const allOptions = [...container.children];
+        const draggedIndex = allOptions.indexOf(draggedElement);
+        const targetIndex = allOptions.indexOf(this);
+
+        // Reordenar elementos
+        if (draggedIndex < targetIndex) {
+            this.parentNode.insertBefore(draggedElement, this.nextSibling);
+        } else {
+            this.parentNode.insertBefore(draggedElement, this);
+        }
+    }
+
+    this.classList.remove('drag-over');
+    return false;
+}
+
 // Gerar PDF personalizado com opções selecionadas
 async function generateCustomPDF() {
     if (!currentUrlData) return;
-
-    // Obter opções selecionadas
-    const includeTitle = document.getElementById('pdfIncludeTitle').checked;
-    const includeShortUrl = document.getElementById('pdfIncludeShortUrl').checked;
-    const includeOriginalUrl = document.getElementById('pdfIncludeOriginalUrl').checked;
-    const includeQRCode = document.getElementById('pdfIncludeQRCode').checked;
-    const includeStats = document.getElementById('pdfIncludeStats').checked;
-
-    // Validar: pelo menos uma opção deve estar selecionada
-    if (!includeTitle && !includeShortUrl && !includeOriginalUrl && !includeQRCode && !includeStats) {
-        alert('Por favor, selecione pelo menos uma informação para incluir no PDF.');
-        return;
-    }
 
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         let yPosition = 20;
 
-        // Título
-        if (includeTitle) {
-            const title = currentUrlData.description || 'Link Encurtado';
-            doc.setFontSize(20);
-            doc.setFont(undefined, 'bold');
-            doc.text(title, 105, yPosition, { align: 'center' });
-            yPosition += 10;
+        // Obter todas as opções na ordem do DOM
+        const container = document.getElementById('pdfOptions');
+        const options = [...container.children];
 
-            // Linha decorativa
-            doc.setLineWidth(0.5);
-            doc.line(20, yPosition, 190, yPosition);
-            yPosition += 15;
+        // Verificar se pelo menos uma opção está marcada
+        const hasCheckedOption = options.some(option => {
+            const checkbox = option.querySelector('input[type="checkbox"]');
+            return checkbox && checkbox.checked;
+        });
+
+        if (!hasCheckedOption) {
+            alert('Por favor, selecione pelo menos uma informação para incluir no PDF.');
+            return;
         }
 
-        // URL Encurtada
-        if (includeShortUrl) {
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('Link Curto:', 20, yPosition);
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(10);
-            doc.text(currentUrlData.short_url, 20, yPosition + 8);
-            yPosition += 20;
-        }
+        // Processar cada opção na ordem que aparecem no DOM
+        for (const option of options) {
+            const checkbox = option.querySelector('input[type="checkbox"]');
+            if (!checkbox || !checkbox.checked) continue;
 
-        // URL Original
-        if (includeOriginalUrl) {
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('URL Original:', 20, yPosition);
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(10);
-            const originalUrlLines = doc.splitTextToSize(currentUrlData.original_url, 170);
-            doc.text(originalUrlLines, 20, yPosition + 8);
-            yPosition += 8 + (originalUrlLines.length * 7) + 12;
-        }
+            const field = option.dataset.field;
 
-        // Estatísticas
-        if (includeStats) {
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('Estatísticas:', 20, yPosition);
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(10);
-            doc.text(`Cliques: ${currentUrlData.clicks}`, 20, yPosition + 8);
-            doc.text(`Criado em: ${formatDate(currentUrlData.created_at)}`, 20, yPosition + 16);
-            yPosition += 28;
-        }
+            switch (field) {
+                case 'title':
+                    const title = currentUrlData.description || 'Link Encurtado';
+                    doc.setFontSize(20);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(title, 105, yPosition, { align: 'center' });
+                    yPosition += 10;
 
-        // QR Code
-        if (includeQRCode) {
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('QR Code:', 20, yPosition);
-            yPosition += 5;
+                    // Linha decorativa
+                    doc.setLineWidth(0.5);
+                    doc.line(20, yPosition, 190, yPosition);
+                    yPosition += 15;
+                    break;
 
-            // Adicionar imagem do QR Code centralizada
-            const qrCodeSize = 80;
-            doc.addImage(currentUrlData.qr_code, 'PNG', 65, yPosition, qrCodeSize, qrCodeSize);
-            yPosition += qrCodeSize + 10;
+                case 'shortUrl':
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Link Curto:', 20, yPosition);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(10);
+                    doc.text(currentUrlData.short_url, 20, yPosition + 8);
+                    yPosition += 20;
+                    break;
+
+                case 'originalUrl':
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('URL Original:', 20, yPosition);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(10);
+                    const originalUrlLines = doc.splitTextToSize(currentUrlData.original_url, 170);
+                    doc.text(originalUrlLines, 20, yPosition + 8);
+                    yPosition += 8 + (originalUrlLines.length * 7) + 12;
+                    break;
+
+                case 'stats':
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Estatísticas:', 20, yPosition);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(10);
+                    doc.text(`Cliques: ${currentUrlData.clicks}`, 20, yPosition + 8);
+                    doc.text(`Criado em: ${formatDate(currentUrlData.created_at)}`, 20, yPosition + 16);
+                    yPosition += 28;
+                    break;
+
+                case 'qrCode':
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('QR Code:', 20, yPosition);
+                    yPosition += 5;
+
+                    // Adicionar imagem do QR Code centralizada
+                    const qrCodeSize = 80;
+                    doc.addImage(currentUrlData.qr_code, 'PNG', 65, yPosition, qrCodeSize, qrCodeSize);
+                    yPosition += qrCodeSize + 10;
+                    break;
+            }
         }
 
         // Rodapé discreto

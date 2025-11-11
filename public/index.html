@@ -304,27 +304,32 @@
                     <span class="modal-close" onclick="closePdfCustomizer()">&times;</span>
                 </div>
                 <div class="modal-body">
-                    <p class="modal-description">Selecione as informações que deseja incluir no PDF:</p>
-                    <div class="pdf-options">
-                        <label class="checkbox-option">
+                    <p class="modal-description">Selecione as informações que deseja incluir no PDF e arraste para reordenar:</p>
+                    <div class="pdf-options" id="pdfOptions">
+                        <label class="checkbox-option" draggable="true" data-field="title">
+                            <span class="drag-handle">⋮⋮</span>
                             <input type="checkbox" id="pdfIncludeTitle" checked>
-                            <span>📝 Título/Descrição</span>
+                            <span class="option-label">📝 Título/Descrição</span>
                         </label>
-                        <label class="checkbox-option">
+                        <label class="checkbox-option" draggable="true" data-field="shortUrl">
+                            <span class="drag-handle">⋮⋮</span>
                             <input type="checkbox" id="pdfIncludeShortUrl" checked>
-                            <span>🔗 Link Curto</span>
+                            <span class="option-label">🔗 Link Curto</span>
                         </label>
-                        <label class="checkbox-option">
+                        <label class="checkbox-option" draggable="true" data-field="originalUrl">
+                            <span class="drag-handle">⋮⋮</span>
                             <input type="checkbox" id="pdfIncludeOriginalUrl" checked>
-                            <span>🌐 URL Original</span>
+                            <span class="option-label">🌐 URL Original</span>
                         </label>
-                        <label class="checkbox-option">
+                        <label class="checkbox-option" draggable="true" data-field="qrCode">
+                            <span class="drag-handle">⋮⋮</span>
                             <input type="checkbox" id="pdfIncludeQRCode" checked>
-                            <span>📱 QR Code</span>
+                            <span class="option-label">📱 QR Code</span>
                         </label>
-                        <label class="checkbox-option">
+                        <label class="checkbox-option" draggable="true" data-field="stats">
+                            <span class="drag-handle">⋮⋮</span>
                             <input type="checkbox" id="pdfIncludeStats">
-                            <span>📊 Estatísticas (cliques e data)</span>
+                            <span class="option-label">📊 Estatísticas (cliques e data)</span>
                         </label>
                     </div>
                 </div>
