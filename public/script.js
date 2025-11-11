@@ -85,6 +85,9 @@ function showLoginButton() {
 
     if (loginBtn) loginBtn.style.display = 'flex';
     if (userMenu) userMenu.style.display = 'none';
+
+    // Desabilitar opções avançadas para usuários não autenticados
+    restrictGuestAccess();
 }
 
 /**
@@ -109,6 +112,101 @@ function showUserMenu(user) {
     if (userNameDropdown) userNameDropdown.textContent = user.name;
     if (userEmailDropdown) userEmailDropdown.textContent = user.email;
     if (userAvatarDropdown) userAvatarDropdown.src = user.picture || '/default-avatar.png';
+
+    // Habilitar opções avançadas para usuários autenticados
+    enablePremiumAccess();
+}
+
+/**
+ * Restringir acesso para usuários não autenticados (guest)
+ */
+function restrictGuestAccess() {
+    // Mostrar aviso de login necessário nas opções avançadas
+    const loginNotice = document.getElementById('loginRequiredNotice');
+    if (loginNotice) loginNotice.style.display = 'block';
+
+    // Mostrar badges premium
+    const badges = ['descriptionBadge', 'customCodeBadge', 'expiresBadge'];
+    badges.forEach(id => {
+        const badge = document.getElementById(id);
+        if (badge) badge.style.display = 'inline';
+    });
+
+    // Mostrar aviso de expiração automática em 7 dias
+    const guestNotice = document.getElementById('guestExpirationNotice');
+    if (guestNotice) guestNotice.style.display = 'block';
+
+    // Desabilitar campos avançados
+    const descriptionInput = document.getElementById('descriptionInput');
+    const customCodeInput = document.getElementById('customCodeInput');
+    const expiresInInput = document.getElementById('expiresInInput');
+
+    if (descriptionInput) {
+        descriptionInput.disabled = true;
+        descriptionInput.placeholder = '🔒 Faça login para adicionar descrição';
+    }
+
+    if (customCodeInput) {
+        customCodeInput.disabled = true;
+        customCodeInput.placeholder = '🔒 Faça login para código personalizado';
+    }
+
+    if (expiresInInput) {
+        expiresInInput.disabled = true;
+    }
+
+    // Ocultar histórico e mostrar aviso
+    const guestHistoryNotice = document.getElementById('guestHistoryNotice');
+    const authenticatedHistory = document.getElementById('authenticatedHistory');
+
+    if (guestHistoryNotice) guestHistoryNotice.style.display = 'block';
+    if (authenticatedHistory) authenticatedHistory.style.display = 'none';
+}
+
+/**
+ * Habilitar acesso premium para usuários autenticados
+ */
+function enablePremiumAccess() {
+    // Ocultar aviso de login necessário
+    const loginNotice = document.getElementById('loginRequiredNotice');
+    if (loginNotice) loginNotice.style.display = 'none';
+
+    // Ocultar badges premium
+    const badges = ['descriptionBadge', 'customCodeBadge', 'expiresBadge'];
+    badges.forEach(id => {
+        const badge = document.getElementById(id);
+        if (badge) badge.style.display = 'none';
+    });
+
+    // Ocultar aviso de expiração
+    const guestNotice = document.getElementById('guestExpirationNotice');
+    if (guestNotice) guestNotice.style.display = 'none';
+
+    // Habilitar campos avançados
+    const descriptionInput = document.getElementById('descriptionInput');
+    const customCodeInput = document.getElementById('customCodeInput');
+    const expiresInInput = document.getElementById('expiresInInput');
+
+    if (descriptionInput) {
+        descriptionInput.disabled = false;
+        descriptionInput.placeholder = 'ex: Site da empresa, Link do produto...';
+    }
+
+    if (customCodeInput) {
+        customCodeInput.disabled = false;
+        customCodeInput.placeholder = 'ex: meu-link';
+    }
+
+    if (expiresInInput) {
+        expiresInInput.disabled = false;
+    }
+
+    // Mostrar histórico e ocultar aviso
+    const guestHistoryNotice = document.getElementById('guestHistoryNotice');
+    const authenticatedHistory = document.getElementById('authenticatedHistory');
+
+    if (guestHistoryNotice) guestHistoryNotice.style.display = 'none';
+    if (authenticatedHistory) authenticatedHistory.style.display = 'block';
 }
 
 /**

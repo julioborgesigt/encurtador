@@ -78,8 +78,33 @@
                     ⚙️ Opções Avançadas
                 </button>
                 <div id="advancedOptionsContent" class="options-content" style="display: none;">
+                    <!-- Aviso para usuários não autenticados -->
+                    <div id="loginRequiredNotice" class="login-required-notice" style="display: none;">
+                        <div class="notice-content">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            <div>
+                                <strong>🔒 Recursos Premium</strong>
+                                <p>Faça login com Google para ter acesso a:</p>
+                                <ul>
+                                    <li>✨ Links personalizados</li>
+                                    <li>📝 Descrições customizadas</li>
+                                    <li>⏰ Controle de expiração</li>
+                                    <li>📊 Histórico completo</li>
+                                </ul>
+                                <button class="btn-login-notice" onclick="login()">
+                                    Entrar com Google
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="option-group">
-                        <label for="descriptionInput">Descrição (opcional):</label>
+                        <label for="descriptionInput">
+                            Descrição (opcional):
+                            <span class="premium-badge" id="descriptionBadge" style="display: none;">🔒 Premium</span>
+                        </label>
                         <input
                             type="text"
                             id="descriptionInput"
@@ -89,7 +114,10 @@
                         <small>Ajuda a encontrar o link posteriormente</small>
                     </div>
                     <div class="option-group">
-                        <label for="customCodeInput">Código Personalizado (opcional):</label>
+                        <label for="customCodeInput">
+                            Código Personalizado (opcional):
+                            <span class="premium-badge" id="customCodeBadge" style="display: none;">🔒 Premium</span>
+                        </label>
                         <input
                             type="text"
                             id="customCodeInput"
@@ -100,7 +128,10 @@
                         <small>Deixe em branco para gerar automaticamente</small>
                     </div>
                     <div class="option-group">
-                        <label for="expiresInInput">Expiração (em dias):</label>
+                        <label for="expiresInInput">
+                            Expiração (em dias):
+                            <span class="premium-badge" id="expiresBadge" style="display: none;">🔒 Premium</span>
+                        </label>
                         <select id="expiresInInput">
                             <option value="">Sem expiração</option>
                             <option value="1">1 dia</option>
@@ -108,6 +139,9 @@
                             <option value="30">30 dias</option>
                             <option value="90">90 dias</option>
                         </select>
+                        <small id="guestExpirationNotice" style="display: none;">
+                            ⏰ Sem login: seus links expiram em 7 dias
+                        </small>
                     </div>
                 </div>
             </div>
@@ -172,11 +206,42 @@
         </section>
 
         <!-- Lista de URLs -->
-        <section class="urls-list">
-            <div class="list-header">
-                <h2>📊 Seus Links Criados</h2>
-                <button class="btn-refresh" onclick="loadUrls()">🔄 Atualizar</button>
+        <section class="urls-list" id="urlsListSection">
+            <!-- Mensagem para usuários não autenticados -->
+            <div id="guestHistoryNotice" class="guest-history-notice" style="display: none;">
+                <div class="notice-box">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <h3>🔒 Histórico Bloqueado</h3>
+                    <p>Faça login com sua conta Google para:</p>
+                    <ul>
+                        <li>📊 Ver histórico completo dos seus links</li>
+                        <li>📝 Adicionar descrições personalizadas</li>
+                        <li>✨ Criar códigos curtos personalizados</li>
+                        <li>⏰ Controlar tempo de expiração</li>
+                        <li>🗑️ Gerenciar seus links (editar e deletar)</li>
+                    </ul>
+                    <button class="btn-login-large" onclick="login()">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                            <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.837.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                            <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                            <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                        </svg>
+                        Entrar com Google - É Grátis!
+                    </button>
+                    <small>✨ Sem login: você pode criar links que expiram em 7 dias</small>
+                </div>
             </div>
+
+            <!-- Conteúdo do histórico (apenas para usuários autenticados) -->
+            <div id="authenticatedHistory" style="display: none;">
+                <div class="list-header">
+                    <h2>📊 Seus Links Criados</h2>
+                    <button class="btn-refresh" onclick="loadUrls()">🔄 Atualizar</button>
+                </div>
 
             <!-- Busca e Filtros -->
             <div class="search-filter-container">
@@ -219,6 +284,8 @@
 
             <!-- Paginação -->
             <div id="pagination" class="pagination" style="display: none;"></div>
+
+            </div> <!-- Fim authenticatedHistory -->
         </section>
 
         <!-- Modal de Estatísticas -->
