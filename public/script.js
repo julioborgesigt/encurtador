@@ -342,12 +342,15 @@ function displayResult(data) {
     shortUrlDisplay.value = data.short_url;
     originalUrlDisplay.value = data.original_url;
     qrCodeImage.src = data.qr_code;
-    clickCount.textContent = data.clicks;
-    createdDate.textContent = formatDate(data.created_at);
-    
+
     // Mostrar seção de resultado
     resultSection.style.display = 'block';
     resultSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Fechar resultado
+function closeResult() {
+    resultSection.style.display = 'none';
 }
 
 // Copiar para clipboard
@@ -617,9 +620,14 @@ function closeStatsModal() {
 
 // Fechar modal ao clicar fora dele
 window.onclick = function(event) {
-    const modal = document.getElementById('statsModal');
-    if (event.target === modal) {
+    const statsModal = document.getElementById('statsModal');
+    const pdfModal = document.getElementById('pdfCustomizerModal');
+
+    if (event.target === statsModal) {
         closeStatsModal();
+    }
+    if (event.target === pdfModal) {
+        closePdfCustomizer();
     }
 }
 
@@ -749,55 +757,101 @@ function clearFilters() {
     loadUrls();
 }
 
-// Baixar PDF com informações do link
-async function downloadPDF() {
+// Abrir modal de personalização de PDF
+function openPdfCustomizer() {
+    document.getElementById('pdfCustomizerModal').style.display = 'flex';
+}
+
+// Fechar modal de personalização de PDF
+function closePdfCustomizer() {
+    document.getElementById('pdfCustomizerModal').style.display = 'none';
+}
+
+// Gerar PDF personalizado com opções selecionadas
+async function generateCustomPDF() {
     if (!currentUrlData) return;
+
+    // Obter opções selecionadas
+    const includeTitle = document.getElementById('pdfIncludeTitle').checked;
+    const includeShortUrl = document.getElementById('pdfIncludeShortUrl').checked;
+    const includeOriginalUrl = document.getElementById('pdfIncludeOriginalUrl').checked;
+    const includeQRCode = document.getElementById('pdfIncludeQRCode').checked;
+    const includeStats = document.getElementById('pdfIncludeStats').checked;
+
+    // Validar: pelo menos uma opção deve estar selecionada
+    if (!includeTitle && !includeShortUrl && !includeOriginalUrl && !includeQRCode && !includeStats) {
+        alert('Por favor, selecione pelo menos uma informação para incluir no PDF.');
+        return;
+    }
 
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
+        let yPosition = 20;
 
         // Título
-        const title = currentUrlData.description || 'Link Encurtado';
-        doc.setFontSize(20);
-        doc.setFont(undefined, 'bold');
-        doc.text(title, 105, 20, { align: 'center' });
+        if (includeTitle) {
+            const title = currentUrlData.description || 'Link Encurtado';
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text(title, 105, yPosition, { align: 'center' });
+            yPosition += 10;
 
-        // Linha decorativa
-        doc.setLineWidth(0.5);
-        doc.line(20, 25, 190, 25);
-
-        // URL Original
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text('URL Original:', 20, 40);
-        doc.setFont(undefined, 'normal');
-        doc.setFontSize(10);
-        const originalUrlLines = doc.splitTextToSize(currentUrlData.original_url, 170);
-        doc.text(originalUrlLines, 20, 48);
+            // Linha decorativa
+            doc.setLineWidth(0.5);
+            doc.line(20, yPosition, 190, yPosition);
+            yPosition += 15;
+        }
 
         // URL Encurtada
-        let yPosition = 48 + (originalUrlLines.length * 7) + 10;
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text('URL Encurtada:', 20, yPosition);
-        doc.setFont(undefined, 'normal');
-        doc.setFontSize(10);
-        doc.text(currentUrlData.short_url, 20, yPosition + 8);
+        if (includeShortUrl) {
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('Link Curto:', 20, yPosition);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            doc.text(currentUrlData.short_url, 20, yPosition + 8);
+            yPosition += 20;
+        }
+
+        // URL Original
+        if (includeOriginalUrl) {
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('URL Original:', 20, yPosition);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            const originalUrlLines = doc.splitTextToSize(currentUrlData.original_url, 170);
+            doc.text(originalUrlLines, 20, yPosition + 8);
+            yPosition += 8 + (originalUrlLines.length * 7) + 12;
+        }
+
+        // Estatísticas
+        if (includeStats) {
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('Estatísticas:', 20, yPosition);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            doc.text(`Cliques: ${currentUrlData.clicks}`, 20, yPosition + 8);
+            doc.text(`Criado em: ${formatDate(currentUrlData.created_at)}`, 20, yPosition + 16);
+            yPosition += 28;
+        }
 
         // QR Code
-        yPosition += 20;
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text('QR Code:', 20, yPosition);
+        if (includeQRCode) {
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('QR Code:', 20, yPosition);
+            yPosition += 5;
 
-        // Adicionar imagem do QR Code centralizada
-        yPosition += 5;
-        const qrCodeSize = 80;
-        doc.addImage(currentUrlData.qr_code, 'PNG', 65, yPosition, qrCodeSize, qrCodeSize);
+            // Adicionar imagem do QR Code centralizada
+            const qrCodeSize = 80;
+            doc.addImage(currentUrlData.qr_code, 'PNG', 65, yPosition, qrCodeSize, qrCodeSize);
+            yPosition += qrCodeSize + 10;
+        }
 
         // Rodapé discreto
-        yPosition += qrCodeSize + 10;
         doc.setFontSize(8);
         doc.setTextColor(150);
         doc.text('Gerado pelo Encurtador de URLs', 105, yPosition, { align: 'center' });
@@ -808,6 +862,12 @@ async function downloadPDF() {
             : `link_${currentUrlData.short_code}.pdf`;
 
         doc.save(fileName);
+
+        // Fechar modal
+        closePdfCustomizer();
+
+        // Mostrar toast de sucesso
+        showToast('✅ PDF gerado com sucesso!', 'success');
 
     } catch (error) {
         console.error('Erro ao gerar PDF:', error);

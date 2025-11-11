@@ -152,8 +152,16 @@
         <!-- Resultado -->
         <section id="resultSection" class="result-section" style="display: none;">
             <div class="result-card">
-                <h2>✅ Link Criado com Sucesso!</h2>
-                
+                <div class="result-header">
+                    <h2>✅ Link Criado com Sucesso!</h2>
+                    <button class="btn-close-result" onclick="closeResult()" title="Fechar">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+
                 <div class="result-content">
                     <div class="url-display">
                         <label>Link Curto:</label>
@@ -181,20 +189,9 @@
                             <button class="btn-download" onclick="downloadQRCode()">
                                 💾 QR Code
                             </button>
-                            <button class="btn-download btn-download-pdf" onclick="downloadPDF()">
-                                📄 Baixar PDF
+                            <button class="btn-download btn-download-pdf" onclick="openPdfCustomizer()">
+                                📄 PDF Personalizado
                             </button>
-                        </div>
-                    </div>
-
-                    <div class="stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Cliques:</span>
-                            <span class="stat-value" id="clickCount">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Criado em:</span>
-                            <span class="stat-value" id="createdDate">-</span>
                         </div>
                     </div>
                 </div>
@@ -295,6 +292,45 @@
                 <h2>📊 Estatísticas do Link</h2>
                 <div id="statsContent" class="stats-modal-content">
                     <p class="loading">Carregando...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Personalização de PDF -->
+        <div id="pdfCustomizerModal" class="modal" style="display: none;">
+            <div class="modal-content pdf-customizer">
+                <div class="modal-header">
+                    <h3>📄 Personalizar PDF</h3>
+                    <span class="modal-close" onclick="closePdfCustomizer()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-description">Selecione as informações que deseja incluir no PDF:</p>
+                    <div class="pdf-options">
+                        <label class="checkbox-option">
+                            <input type="checkbox" id="pdfIncludeTitle" checked>
+                            <span>📝 Título/Descrição</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" id="pdfIncludeShortUrl" checked>
+                            <span>🔗 Link Curto</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" id="pdfIncludeOriginalUrl" checked>
+                            <span>🌐 URL Original</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" id="pdfIncludeQRCode" checked>
+                            <span>📱 QR Code</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" id="pdfIncludeStats">
+                            <span>📊 Estatísticas (cliques e data)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closePdfCustomizer()">Cancelar</button>
+                    <button class="btn-primary" onclick="generateCustomPDF()">📥 Baixar PDF</button>
                 </div>
             </div>
         </div>
