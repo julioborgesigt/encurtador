@@ -174,7 +174,7 @@ app.get('/', (req, res) => {
 
 // API: Criar link curto
 app.post('/api/shorten', createLimiter, async (req, res) => {
-  const { url, customCode, expiresIn, description } = req.body;
+  let { url, customCode, expiresIn, description } = req.body;
 
   if (!url || !isValidUrl(url)) {
     return res.status(400).json({
@@ -182,11 +182,21 @@ app.post('/api/shorten', createLimiter, async (req, res) => {
     });
   }
 
-  // Validar custom code se fornecido
-  if (customCode && !isValidShortCode(customCode)) {
-    return res.status(400).json({
-      error: 'Código personalizado inválido. Use apenas letras, números e hífens (3-30 caracteres).'
-    });
+  // Restrições para usuários não autenticados
+  const isAuthenticated = req.isAuthenticated();
+
+  if (!isAuthenticated) {
+    // Usuários não autenticados: forçar 7 dias de expiração e bloquear opções avançadas
+    customCode = null;
+    description = null;
+    expiresIn = 7; // Forçar 7 dias
+  } else {
+    // Validar custom code se fornecido (apenas para usuários autenticados)
+    if (customCode && !isValidShortCode(customCode)) {
+      return res.status(400).json({
+        error: 'Código personalizado inválido. Use apenas letras, números e hífens (3-30 caracteres).'
+      });
+    }
   }
 
   try {
@@ -285,6 +295,19 @@ app.post('/api/shorten', createLimiter, async (req, res) => {
 // API: Listar todas as URLs com paginação e busca
 app.get('/api/urls', async (req, res) => {
   try {
+    // Usuários não autenticados não veem histórico
+    if (!req.isAuthenticated()) {
+      return res.json({
+        urls: [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0
+        }
+      });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || '';
@@ -298,15 +321,10 @@ app.get('/api/urls', async (req, res) => {
     const countParams = [];
     const conditions = [];
 
-    // Se usuário está autenticado, mostrar apenas suas URLs
-    if (req.isAuthenticated()) {
-      conditions.push('(user_id = ? OR user_id IS NULL)');
-      params.push(req.user.id);
-      countParams.push(req.user.id);
-    } else {
-      // Se não autenticado, mostrar apenas URLs sem dono (criadas antes do sistema de auth)
-      conditions.push('user_id IS NULL');
-    }
+    // Mostrar apenas URLs do usuário autenticado (e URLs sem dono para compatibilidade)
+    conditions.push('(user_id = ? OR user_id IS NULL)');
+    params.push(req.user.id);
+    countParams.push(req.user.id);
 
     // Adicionar busca se fornecida (incluindo description)
     if (search) {

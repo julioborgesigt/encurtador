@@ -284,6 +284,188 @@ header h1 {
     font-size: 0.85rem;
 }
 
+/* Premium Features & Guest Restrictions */
+.login-required-notice {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.notice-content {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.notice-content svg {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.notice-content strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.notice-content p {
+    margin: 8px 0;
+    opacity: 0.95;
+}
+
+.notice-content ul {
+    margin: 10px 0;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.notice-content ul li {
+    margin: 6px 0;
+    padding-left: 5px;
+}
+
+.notice-content ul li::before {
+    content: "✨ ";
+    margin-right: 5px;
+}
+
+.btn-login-notice {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: white;
+    color: #764ba2;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-login-notice:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.premium-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    margin-left: 8px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+/* Campos desabilitados */
+.option-group input:disabled,
+.option-group select:disabled {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.option-group input:disabled::placeholder {
+    color: #9ca3af;
+}
+
+/* Aviso de histórico bloqueado para guests */
+.guest-history-notice {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    animation: fadeInUp 0.6s ease;
+}
+
+.notice-box {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.notice-box svg {
+    color: var(--gray);
+    margin-bottom: 20px;
+}
+
+.notice-box h3 {
+    font-size: 1.8rem;
+    color: var(--dark);
+    margin-bottom: 15px;
+}
+
+.notice-box p {
+    color: var(--gray);
+    margin-bottom: 15px;
+    font-size: 1.05rem;
+}
+
+.notice-box ul {
+    text-align: left;
+    max-width: 400px;
+    margin: 20px auto;
+    list-style: none;
+    padding: 0;
+}
+
+.notice-box ul li {
+    margin: 12px 0;
+    padding-left: 30px;
+    position: relative;
+    color: var(--dark);
+}
+
+.notice-box ul li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.btn-login-large {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 25px;
+    padding: 15px 35px;
+    background: white;
+    color: var(--dark);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.btn-login-large:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.btn-login-large svg {
+    flex-shrink: 0;
+}
+
+.notice-box small {
+    display: block;
+    margin-top: 15px;
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
 #urlInput {
     flex: 1;
     padding: 15px 20px;
