@@ -23,11 +23,14 @@ body {
     min-height: 100vh;
     padding: 20px;
     color: var(--dark);
+    overflow-x: hidden;
 }
 
 .container {
     max-width: 900px;
     margin: 0 auto;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 header {
@@ -383,6 +386,9 @@ header h1 {
     border-left: 4px solid var(--primary-color);
     transition: all 0.3s ease;
     animation: fadeIn 0.5s ease;
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .url-item:hover {
@@ -401,6 +407,8 @@ header h1 {
 .url-info {
     flex: 1;
     min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .url-description {
@@ -412,13 +420,21 @@ header h1 {
     background: rgba(59, 130, 246, 0.1);
     border-radius: 6px;
     border-left: 3px solid var(--primary-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 .url-short {
     font-weight: 600;
     color: var(--primary-color);
     margin-bottom: 5px;
-    word-break: break-all;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    max-width: 100%;
 }
 
 .url-original {
@@ -427,6 +443,8 @@ header h1 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
+    display: block;
 }
 
 .url-actions {
@@ -783,8 +801,26 @@ footer {
         flex-direction: column;
     }
 
+    .url-info {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .url-short,
+    .url-original,
+    .url-description {
+        max-width: 100%;
+        overflow: hidden;
+    }
+
     .url-actions {
         width: 100%;
         justify-content: space-between;
+    }
+
+    .toast-notification {
+        right: 10px;
+        left: 10px;
+        max-width: calc(100% - 20px);
     }
 }
