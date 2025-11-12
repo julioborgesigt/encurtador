@@ -636,29 +636,63 @@ async function deleteUrl(shortCode) {
     if (!confirm('Tem certeza que deseja deletar este link? Esta ação não pode ser desfeita.')) {
         return;
     }
-    
+
     try {
+        // Encontrar o elemento no DOM antes de deletar
+        const urlItems = document.querySelectorAll('.url-item');
+        let itemToRemove = null;
+
+        urlItems.forEach(item => {
+            const actionsDiv = item.querySelector('.url-actions');
+            if (actionsDiv) {
+                const deleteButton = actionsDiv.querySelector(`button[onclick="deleteUrl('${shortCode}')"]`);
+                if (deleteButton) {
+                    itemToRemove = item;
+                }
+            }
+        });
+
         const response = await fetch(`/api/urls/${shortCode}`, {
             method: 'DELETE'
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.error);
         }
-        
-        // Recarregar lista
-        loadUrls();
-        
+
+        // Animar remoção do item
+        if (itemToRemove) {
+            itemToRemove.style.animation = 'fadeOut 0.5s ease forwards';
+
+            // Remover do DOM após animação
+            setTimeout(() => {
+                itemToRemove.remove();
+
+                // Verificar se a lista ficou vazia
+                const remainingItems = document.querySelectorAll('.url-item');
+                if (remainingItems.length === 0) {
+                    // Se não há mais itens, recarregar para mostrar mensagem vazia
+                    loadUrls();
+                }
+            }, 500);
+        } else {
+            // Se não encontrou o item no DOM, recarregar a lista
+            loadUrls();
+        }
+
         // Se era o link atual sendo exibido, esconder
         if (currentUrlData && currentUrlData.short_code === shortCode) {
             resultSection.style.display = 'none';
             currentUrlData = null;
         }
-        
+
+        // Mostrar toast de sucesso
+        showToast('✅ Link deletado com sucesso!', 'success');
+
     } catch (error) {
-        alert('Erro ao deletar URL: ' + error.message);
+        showToast('❌ Erro ao deletar: ' + error.message, 'error');
     }
 }
 
