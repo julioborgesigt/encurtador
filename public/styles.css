@@ -730,7 +730,7 @@ header h1 {
 
 .btn-refresh:hover {
     background: var(--border);
-    transform: rotate(180deg);
+    transform: rotate(360deg) scale(1.1);
 }
 
 .urls-container {
@@ -1248,6 +1248,22 @@ footer {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-10px); }
     75% { transform: translateX(10px); }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+        max-height: 200px;
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-50px);
+        max-height: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
 }
 
 /* Responsividade */
