@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Encurtador de URLs</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>🔗 Admin</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                    📊 Dashboard
+                </a>
+                <a href="#users" class="nav-item" onclick="showSection('users')">
+                    👥 Usuários
+                </a>
+                <a href="#database" class="nav-item" onclick="showSection('database')">
+                    💾 Banco de Dados
+                </a>
+                <a href="#maintenance" class="nav-item" onclick="showSection('maintenance')">
+                    🔧 Manutenção
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/" class="btn-back">← Voltar ao Site</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="header-actions">
+                    <button class="btn-refresh" onclick="refreshData()">
+                        🔄 Atualizar
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total de Usuários</div>
+                            <div class="stat-value" id="total-users">-</div>
+                            <div class="stat-subtitle" id="recent-users">+0 últimos 30 dias</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">🔗</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total de Links</div>
+                            <div class="stat-value" id="total-links">-</div>
+                            <div class="stat-subtitle" id="recent-links">+0 últimos 30 dias</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">👆</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total de Cliques</div>
+                            <div class="stat-value" id="total-clicks">-</div>
+                            <div class="stat-subtitle">Em todos os links</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Tamanho do BD</div>
+                            <div class="stat-value" id="db-size">- MB</div>
+                            <div class="stat-subtitle" id="db-name">Database</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Stats -->
+                <div class="secondary-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">✅ Links Ativos:</span>
+                        <span class="stat-value" id="active-links">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">⏰ Links Expirados:</span>
+                        <span class="stat-value" id="expired-links">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">✨ Links Customizados:</span>
+                        <span class="stat-value" id="custom-links">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🤖 Links Gerados:</span>
+                        <span class="stat-value" id="generated-links">-</span>
+                    </div>
+                </div>
+
+                <!-- Top Links -->
+                <div class="section-card">
+                    <h3>🏆 Top 10 Links Mais Clicados</h3>
+                    <div id="top-links-container" class="table-container">
+                        <p class="loading">Carregando...</p>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="section-card">
+                    <h3>📝 Atividade Recente</h3>
+                    <div id="recent-activity-container" class="table-container">
+                        <p class="loading">Carregando...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users-section" class="content-section">
+                <div class="section-card">
+                    <h3>👥 Usuários Cadastrados</h3>
+                    <div id="users-container" class="table-container">
+                        <p class="loading">Carregando...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Database Section -->
+            <section id="database-section" class="content-section">
+                <div class="section-card">
+                    <h3>💾 Informações do Banco de Dados</h3>
+                    <div id="database-info" class="database-info">
+                        <p class="loading">Carregando...</p>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h3>📊 Estatísticas de Tabelas</h3>
+                    <div id="tables-container" class="table-container">
+                        <p class="loading">Carregando...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Maintenance Section -->
+            <section id="maintenance-section" class="content-section">
+                <div class="section-card">
+                    <h3>🔧 Manutenção do Sistema</h3>
+                    <div class="maintenance-actions">
+                        <div class="action-card">
+                            <h4>🗑️ Limpar Links Expirados</h4>
+                            <p>Remove todos os links que já expiraram do banco de dados.</p>
+                            <button class="btn-danger" onclick="cleanExpiredLinks()">
+                                Executar Limpeza
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script src="admin-script.js"></script>
+</body>
+</html>

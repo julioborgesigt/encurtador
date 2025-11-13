@@ -87,6 +87,10 @@ app.use('/auth', authRoutes);
 const urlRoutes = require('./routes/urls');
 app.use('/api', urlRoutes);
 
+// Rotas de administração
+const adminRoutes = require('./routes/admin');
+app.use('/admin', adminRoutes);
+
 // Healthcheck endpoint
 app.get('/health', async (req, res) => {
   try {
