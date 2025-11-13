@@ -83,9 +83,15 @@ class UrlModel {
 
     // Filtrar por usuário
     if (userId !== undefined) {
-      conditions.push('(user_id = ? OR user_id IS NULL)');
-      queryParams.push(userId);
-      countParams.push(userId);
+      if (userId === null) {
+        // Guest user: apenas links sem user_id
+        conditions.push('user_id IS NULL');
+      } else {
+        // Authenticated user: apenas links deste usuário
+        conditions.push('user_id = ?');
+        queryParams.push(userId);
+        countParams.push(userId);
+      }
     }
 
     // Busca por texto
