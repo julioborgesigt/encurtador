@@ -24,6 +24,8 @@ const sessionStore = new MySQLStore({
   checkExpirationInterval: 900000, // 15 minutos
   expiration: 86400000, // 24 horas
   createDatabaseTable: true,
+  endConnectionOnClose: false, // Manter pool ativo
+  disableTouch: false, // Permitir atualização de sessão
   schema: {
     tableName: 'sessions',
     columnNames: {
@@ -33,6 +35,12 @@ const sessionStore = new MySQLStore({
     }
   }
 }, pool);
+
+// Handler de erro para o session store
+sessionStore.on('error', (error) => {
+  console.error('❌ Erro no session store:', error.message);
+  // Não derrubar o servidor por erro de sessão
+});
 
 // Middleware de segurança
 app.use(helmet({

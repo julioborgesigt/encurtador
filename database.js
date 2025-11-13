@@ -1,16 +1,38 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Criar pool de conexões
+// Criar pool de conexões com configurações para produção
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 3306,
   database: process.env.DB_NAME || 'url_shortener',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
+
+  // Configurações do pool
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+
+  // Configurações para prevenir ECONNRESET
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000, // 10 segundos
+
+  // Timeouts
+  connectTimeout: 60000, // 60 segundos para conectar
+  acquireTimeout: 60000, // 60 segundos para adquirir conexão do pool
+  timeout: 60000, // 60 segundos para queries
+
+  // Charset
+  charset: 'utf8mb4_unicode_ci'
+});
+
+// Handler de erros do pool
+pool.on('error', (err) => {
+  console.error('❌ Erro no pool MySQL:', err.message);
+  if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
+    console.log('🔄 Conexão perdida, pool vai criar nova conexão automaticamente');
+  }
 });
 
 // Criar tabela se não existir
