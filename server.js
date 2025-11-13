@@ -12,6 +12,9 @@ require('dotenv').config();
 // Controllers
 const UrlController = require('./controllers/urlController');
 
+// Services
+const keepAliveService = require('./services/keepAliveService');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -136,4 +139,14 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   console.log(`📊 Usando MySQL/MariaDB como banco de dados`);
   console.log(`🏗️  Arquitetura: Controllers + Services + Models`);
+
+  // Iniciar keep-alive em produção
+  if (process.env.NODE_ENV === 'production') {
+    const appUrl = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL;
+    if (appUrl) {
+      keepAliveService.start(appUrl);
+    } else {
+      console.log('⚠️  Keep-Alive: Defina RENDER_EXTERNAL_URL ou APP_URL no .env para ativar');
+    }
+  }
 });
