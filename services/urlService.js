@@ -77,7 +77,7 @@ class UrlService {
     const expiresAt = this.calculateExpiration(expiresIn);
 
     // Gerar QR Code
-    const qrCodeDataURL = await this.generateQRCode(shortCode, data.baseUrl);
+    const qrCodeDataURL = await this.generateQRCode(url);
 
     // Criar no banco
     await UrlModel.create({
@@ -117,13 +117,11 @@ class UrlService {
 
   /**
    * Gera QR Code para uma URL
-   * @param {string} shortCode - Código curto
-   * @param {string} baseUrl - URL base (protocolo + host)
+   * @param {string} url - URL completa para gerar o QR Code
    * @returns {Promise<string>} Data URL do QR Code
    */
-  static async generateQRCode(shortCode, baseUrl) {
-    const fullUrl = `${baseUrl}/${shortCode}`;
-    return await QRCode.toDataURL(fullUrl);
+  static async generateQRCode(url) {
+    return await QRCode.toDataURL(url);
   }
 
   /**
