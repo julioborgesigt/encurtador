@@ -12,16 +12,13 @@ const pool = mysql.createPool({
   // Configurações do pool
   waitForConnections: true,
   connectionLimit: 10,
+  maxIdle: 10, // Máximo de conexões idle
+  idleTimeout: 60000, // 60 segundos antes de fechar conexão idle
   queueLimit: 0,
 
   // Configurações para prevenir ECONNRESET
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000, // 10 segundos
-
-  // Timeouts
-  connectTimeout: 60000, // 60 segundos para conectar
-  acquireTimeout: 60000, // 60 segundos para adquirir conexão do pool
-  timeout: 60000, // 60 segundos para queries
 
   // Charset
   charset: 'utf8mb4_unicode_ci'
